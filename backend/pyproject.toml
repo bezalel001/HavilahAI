@@ -5,5 +5,40 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "aiofiles>=25.1.0",
+    "aioredis>=2.0.1",
+    "alembic>=1.17.0",
+    "asyncpg>=0.30.0",
+    "bcrypt<4.1.0",
+    "celery>=5.5.3",
+    "fastapi-mail>=1.5.0",
     "fastapi[standard]>=0.119.0",
+    "httpx>=0.28.1",
+    "kombu>=5.5.4",
+    "minio>=7.2.18",
+    "motor>=3.7.1",
+    "openai>=2.3.0",
+    "uvicorn>=0.32.0",
+    "passlib[bcrypt]>=1.7.4",
+    "pillow>=11.3.0",
+    "psycopg2-binary>=2.9.11",
+    "pydantic>=2.12.0",
+    "pydantic-settings>=2.11.0",
+    "pymongo>=4.15.3",
+    "python-dotenv>=1.1.1",
+    "python-jose[cryptography]>=3.5.0",
+    "python-magic>=0.4.27",
+    "python-multipart>=0.0.20",
+    "redis>=6.4.0",
+    "sqlalchemy>=2.0.44",
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.23.7",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+    "app",
+]
+testpaths = [
+    "tests",
 ]
