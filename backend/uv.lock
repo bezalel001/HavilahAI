@@ -177,6 +177,7 @@ dependencies = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "pymongo" },
+    { name = "pytesseract" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "python-dotenv" },
@@ -209,6 +210,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.12.0" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
     { name = "pymongo", specifier = ">=4.15.3" },
+    { name = "pytesseract", specifier = ">=0.3.13" },
     { name = "pytest", specifier = ">=8.3.3" },
     { name = "pytest-asyncio", specifier = ">=0.23.7" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
@@ -1171,6 +1173,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/5b/fe/7a6a6b331d9f2024ab171028ab53d5d9026959b1d713fe170be591a4d9a8/pymongo-4.15.3-cp314-cp314t-win32.whl", hash = "sha256:e7cde58ef6470c0da922b65e885fb1ffe04deef81e526bd5dea429290fa358ca", size = 1043993, upload-time = "2025-10-07T21:57:28.727Z" },
     { url = "https://files.pythonhosted.org/packages/70/c8/bc64321711e19bd48ea3371f0082f10295c433833245d73e7606d3b9afbe/pymongo-4.15.3-cp314-cp314t-win_amd64.whl", hash = "sha256:fae552767d8e5153ed498f1bca92d905d0d46311d831eefb0f06de38f7695c95", size = 1078481, upload-time = "2025-10-07T21:57:30.372Z" },
     { url = "https://files.pythonhosted.org/packages/39/31/2bb2003bb978eb25dfef7b5f98e1c2d4a86e973e63b367cc508a9308d31c/pymongo-4.15.3-cp314-cp314t-win_arm64.whl", hash = "sha256:47ffb068e16ae5e43580d5c4e3b9437f05414ea80c32a1e5cac44a835859c259", size = 1051179, upload-time = "2025-10-07T21:57:31.829Z" },
+]
+
+[[package]]
+name = "pytesseract"
+version = "0.3.13"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+    { name = "pillow" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9f/a6/7d679b83c285974a7cb94d739b461fa7e7a9b17a3abfd7bf6cbc5c2394b0/pytesseract-0.3.13.tar.gz", hash = "sha256:4bf5f880c99406f52a3cfc2633e42d9dc67615e69d8a509d74867d3baddb5db9", size = 17689, upload-time = "2024-08-16T02:33:56.762Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7a/33/8312d7ce74670c9d39a532b2c246a853861120486be9443eebf048043637/pytesseract-0.3.13-py3-none-any.whl", hash = "sha256:7a99c6c2ac598360693d83a416e36e0b33a67638bb9d77fdcac094a3589d4b34", size = 14705, upload-time = "2024-08-16T02:36:10.09Z" },
 ]
 
 [[package]]

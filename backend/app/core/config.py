@@ -49,15 +49,36 @@ class Settings(BaseSettings):
 
     # AI Service Settings
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
     GROK_API_KEY: str = os.getenv("GROK_API_KEY", "")
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     AI_SERVICE: str = os.getenv("AI_SERVICE", "openai")
+    CONTENT_PIPELINE_COLLECTION: str = os.getenv("CONTENT_PIPELINE_COLLECTION", "content_pipelines")
 
     # Storage Settings
+    FILE_STORAGE_BACKEND: str = os.getenv("FILE_STORAGE_BACKEND", "local")
     MINIO_ENDPOINT: str = os.getenv("MINIO_ENDPOINT", "localhost:9000")
     MINIO_ACCESS_KEY: str = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
     MINIO_SECRET_KEY: str = os.getenv("MINIO_SECRET_KEY", "minioadmin")
     MINIO_BUCKET_NAME: str = os.getenv("MINIO_BUCKET_NAME", "havilah-edtech")
+    MINIO_SECURE: bool = os.getenv("MINIO_SECURE", "false").lower() == "true"
+    UPLOAD_STORAGE_DIR: str = os.getenv("UPLOAD_STORAGE_DIR", str(BASE_DIR / "uploaded_files"))
+
+    # File Upload Settings
+    UPLOAD_MAX_FILE_SIZE_MB: int = int(os.getenv("UPLOAD_MAX_FILE_SIZE_MB", 10))
+    UPLOAD_ALLOWED_CONTENT_TYPES: List[str] = [
+        content_type.strip()
+        for content_type in os.getenv(
+            "UPLOAD_ALLOWED_CONTENT_TYPES",
+            "image/jpeg,image/png,application/pdf",
+        ).split(",")
+        if content_type.strip()
+    ]
+
+    # OCR Settings
+    OCR_ENABLED: bool = os.getenv("OCR_ENABLED", "true").lower() == "true"
+    OCR_LANGUAGE: str = os.getenv("OCR_LANGUAGE", "eng")
 
     # GDPR Settings
     GDPR_COMPLIANCE: bool = os.getenv("GDPR_COMPLIANCE", "true").lower() == "true"

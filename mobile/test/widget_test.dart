@@ -11,20 +11,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:havilah_mobile/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  testWidgets('Shell renders navigation placeholders', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const HavilahApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Dashboard tab renders by default.
+    expect(find.text('Learning Feed'), findsOneWidget);
+    expect(find.text('Upload Notes'), findsNothing);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    // Switch to the Upload tab.
+    await tester.tap(find.text('Upload'));
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Upload Notes'), findsOneWidget);
+    expect(find.text('Profile & Goals'), findsNothing);
+
+    // Switch to Profile tab.
+    await tester.tap(find.text('Profile'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Profile & Goals'), findsOneWidget);
   });
 }
