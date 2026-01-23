@@ -6,7 +6,12 @@ from app.core.events import create_start_app_handler, create_stop_app_handler
 
 
 def get_application() -> FastAPI:
-    app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
+    body_limit = settings.UPLOAD_MAX_FILE_SIZE_MB * 1024 * 1024
+    app = FastAPI(
+        title=settings.PROJECT_NAME,
+        version=settings.VERSION,
+        max_request_body_size=body_limit * 2,
+    )
     app.include_router(api_router, prefix=settings.API_V1_STR)
     app.add_event_handler("startup", create_start_app_handler(app))
     app.add_event_handler("shutdown", create_stop_app_handler(app))
