@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Upload, Camera, FileText, Image, CheckCircle, Loader } from 'lucide-react';
 
 type UploadType = 'file' | 'image' | 'camera';
@@ -14,7 +14,12 @@ export function ContentUpload() {
   const [selectedFile, setSelectedFile] = useState<UploadType | null>(null);
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -24,6 +29,37 @@ export function ContentUpload() {
     { code: 'fr', name: 'French', flag: '🇫🇷' },
     { code: 'ru', name: 'Russian', flag: '🇷🇺' },
   ];
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+    setIsCameraActive(false);
+  };
+
+  const startCamera = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError('Camera is not available on this device.');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setCameraError(null);
+      setIsCameraActive(true);
+    } catch (error) {
+      setCameraError('Unable to access camera. Please check permissions.');
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
 
   const handleUpload = () => {
     setUploadStatus('uploading');
@@ -38,13 +74,40 @@ export function ContentUpload() {
   const handleFileButtonClick = (type: UploadType) => {
     setSelectedFile(type);
     setSelectedFileName(null);
-    setTimeout(() => fileInputRef.current?.click(), 0);
+    setCapturedPhoto(null);
+    if (type === 'camera') {
+      startCamera();
+    } else {
+      stopCamera();
+      setTimeout(() => fileInputRef.current?.click(), 0);
+    }
   };
 
   const handleFileSelected = (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
     setSelectedFileName(files[0].name);
+  };
+
+  const handleCapturePhoto = () => {
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/png');
+    setCapturedPhoto(dataUrl);
+    setSelectedFileName('Captured photo');
+    stopCamera();
+  };
+
+  const handleRetakePhoto = () => {
+    setCapturedPhoto(null);
+    setSelectedFileName(null);
+    startCamera();
   };
 
   const activeUploadConfig = selectedFile ? uploadConfigs[selectedFile] : null;
@@ -126,7 +189,7 @@ export function ContentUpload() {
             </div>
           </div>
 
-          {selectedFile && (
+          {selectedFile && selectedFile !== 'camera' && (
             <div className="bg-white rounded-2xl p-8 shadow-lg">
               <div
                 className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer"
@@ -143,6 +206,64 @@ export function ContentUpload() {
                   Start Upload
                 </button>
               </div>
+            </div>
+          )}
+
+          {selectedFile === 'camera' && (
+            <div className="bg-white rounded-2xl p-8 shadow-lg">
+              {cameraError ? (
+                <div className="text-center text-red-600">{cameraError}</div>
+              ) : (
+                <div className="text-center">
+                  {capturedPhoto ? (
+                    <>
+                      <img src={capturedPhoto} alt="Captured" className="rounded-2xl mx-auto mb-6 max-h-96 object-contain" />
+                      <div className="flex flex-wrap gap-4 justify-center">
+                        <button
+                          onClick={handleRetakePhoto}
+                          className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all"
+                        >
+                          Retake Photo
+                        </button>
+                        <button
+                          onClick={handleUpload}
+                          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all"
+                        >
+                          Use Photo
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <video
+                        ref={videoRef}
+                        className="w-full max-w-md mx-auto rounded-2xl mb-6 bg-black"
+                        autoPlay
+                        muted
+                        playsInline
+                      />
+                      <div className="flex flex-wrap gap-4 justify-center">
+                        <button
+                          onClick={handleCapturePhoto}
+                          disabled={!isCameraActive}
+                          className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-60"
+                        >
+                          Capture Photo
+                        </button>
+                        {isCameraActive && (
+                          <button
+                            onClick={stopCamera}
+                            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition-all"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                      {!isCameraActive && <p className="text-gray-500 mt-4">Starting camera...</p>}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </>
