@@ -1,10 +1,20 @@
-import { useState } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 import { Upload, Camera, FileText, Image, CheckCircle, Loader } from 'lucide-react';
+
+type UploadType = 'file' | 'image' | 'camera';
+
+const uploadConfigs: Record<UploadType, { accept: string; capture?: string }> = {
+  file: { accept: '.pdf,.doc,.docx,.txt' },
+  image: { accept: 'image/*' },
+  camera: { accept: 'image/*', capture: 'environment' },
+};
 
 export function ContentUpload() {
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'complete'>('idle');
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<UploadType | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const languages = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -25,12 +35,30 @@ export function ContentUpload() {
     }, 1500);
   };
 
-  const handleFileSelect = (type: string) => {
+  const handleFileButtonClick = (type: UploadType) => {
     setSelectedFile(type);
+    setSelectedFileName(null);
+    setTimeout(() => fileInputRef.current?.click(), 0);
   };
+
+  const handleFileSelected = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    setSelectedFileName(files[0].name);
+  };
+
+  const activeUploadConfig = selectedFile ? uploadConfigs[selectedFile] : null;
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
+      <input
+        ref={fileInputRef}
+        type="file"
+        className="hidden"
+        accept={activeUploadConfig?.accept}
+        capture={activeUploadConfig?.capture}
+        onChange={handleFileSelected}
+      />
       <div className="mb-8">
         <h1 className="mb-2">Upload Your Notes 📚</h1>
         <p className="text-gray-600">Transform your study materials into interactive learning experiences</p>
@@ -64,7 +92,7 @@ export function ContentUpload() {
             <h2 className="mb-6">Choose Upload Method</h2>
             <div className="grid md:grid-cols-3 gap-6">
               <button
-                onClick={() => handleFileSelect('file')}
+                onClick={() => handleFileButtonClick('file')}
                 className={`p-8 rounded-2xl border-2 border-dashed transition-all hover:scale-105 ${
                   selectedFile === 'file' ? 'border-purple-600 bg-purple-50' : 'border-gray-300 hover:border-purple-400'
                 }`}
@@ -75,7 +103,7 @@ export function ContentUpload() {
               </button>
 
               <button
-                onClick={() => handleFileSelect('image')}
+                onClick={() => handleFileButtonClick('image')}
                 className={`p-8 rounded-2xl border-2 border-dashed transition-all hover:scale-105 ${
                   selectedFile === 'image' ? 'border-purple-600 bg-purple-50' : 'border-gray-300 hover:border-purple-400'
                 }`}
@@ -86,7 +114,7 @@ export function ContentUpload() {
               </button>
 
               <button
-                onClick={() => handleFileSelect('camera')}
+                onClick={() => handleFileButtonClick('camera')}
                 className={`p-8 rounded-2xl border-2 border-dashed transition-all hover:scale-105 ${
                   selectedFile === 'camera' ? 'border-purple-600 bg-purple-50' : 'border-gray-300 hover:border-purple-400'
                 }`}
@@ -100,10 +128,14 @@ export function ContentUpload() {
 
           {selectedFile && (
             <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center">
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <Upload className="w-16 h-16 mx-auto mb-4 text-gray-400" />
                 <div className="mb-2">Drop your files here or click to browse</div>
                 <p className="text-gray-600 mb-6">Maximum file size: 50MB</p>
+                {selectedFileName && <p className="mb-4 text-sm text-purple-700">{selectedFileName}</p>}
                 <button
                   onClick={handleUpload}
                   className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all"
