@@ -131,19 +131,20 @@ export function Flashcards() {
       </div>
 
       {/* Flashcard */}
-      <div className="mb-8 perspective-1000">
+      <div className="mb-8" style={{ perspective: '1000px' }}>
         <div
           onClick={handleFlip}
-          className={`relative h-96 cursor-pointer transition-transform duration-500 transform-style-3d ${
-            isFlipped ? 'rotate-y-180' : ''
-          }`}
-          style={{ transformStyle: 'preserve-3d' }}
+          className="relative h-96 cursor-pointer"
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            transition: 'transform 0.6s',
+          }}
         >
           {/* Front */}
           <div
-            className={`absolute inset-0 bg-white rounded-2xl shadow-2xl p-8 flex flex-col justify-between backface-hidden ${
-              isFlipped ? 'opacity-0' : 'opacity-100'
-            } transition-opacity`}
+            className="absolute inset-0 bg-white rounded-2xl shadow-2xl p-8 flex flex-col justify-between"
+            style={{ backfaceVisibility: 'hidden' }}
           >
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -166,9 +167,11 @@ export function Flashcards() {
 
           {/* Back */}
           <div
-            className={`absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-2xl p-8 flex flex-col justify-between ${
-              isFlipped ? 'opacity-100' : 'opacity-0'
-            } transition-opacity`}
+            className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl shadow-2xl p-8 flex flex-col justify-between text-white"
+            style={{
+              transform: 'rotateY(180deg)',
+              backfaceVisibility: 'hidden',
+            }}
           >
             <div>
               <div className="flex items-center justify-between mb-6">
