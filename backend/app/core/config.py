@@ -21,10 +21,14 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", 7))
 
     # CORS Settings
-    BACKEND_CORS_ORIGINS: List[str] = os.getenv(
-        "BACKEND_CORS_ORIGINS",
-        "http://localhost:3000,http://localhost:8080,http://localhost:5173",
-    ).split(",")
+    BACKEND_CORS_ORIGINS: List[str] = [
+        origin.strip()
+        for origin in os.getenv(
+            "BACKEND_CORS_ORIGINS",
+            "http://localhost:3000,http://localhost:8080,http://localhost:5173",
+        ).split(",")
+        if origin.strip()
+    ]
 
     # Database Settings
     DATABASE_URL: str = os.getenv(

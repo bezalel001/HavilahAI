@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.api_v1.router import api_router
 from app.core.config import settings
@@ -11,6 +12,13 @@ def get_application() -> FastAPI:
         title=settings.PROJECT_NAME,
         version=settings.VERSION,
         max_request_body_size=body_limit * 2,
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.BACKEND_CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
     app.include_router(api_router, prefix=settings.API_V1_STR)
     app.add_event_handler("startup", create_start_app_handler(app))

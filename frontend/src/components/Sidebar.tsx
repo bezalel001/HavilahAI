@@ -9,6 +9,7 @@ import {
   Compass,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { View } from "../App";
 import { useState } from "react";
@@ -18,6 +19,11 @@ interface SidebarProps {
   onNavigate: (view: View) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  user?: {
+    full_name?: string | null;
+    email: string;
+  } | null;
+  onLogout?: () => void;
 }
 
 export function Sidebar({
@@ -25,8 +31,18 @@ export function Sidebar({
   onNavigate,
   collapsed,
   onToggleCollapse,
+  user,
+  onLogout,
 }: SidebarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const displayName =
+    user?.full_name?.trim() || user?.email?.trim() || "Learner";
+  const initials = displayName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   const menuItems = [
     { id: "dashboard" as View, icon: Home, label: "Dashboard" },
@@ -126,22 +142,35 @@ export function Sidebar({
           </nav>
 
           {/* User Profile */}
-          <div className="p-4 border-t border-gray-200">
+          <div className="p-4 border-t border-gray-200 space-y-2">
             <div
               className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white flex-shrink-0">
-                JD
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white flex-shrink-0 uppercase">
+                {initials}
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0">
-                  <div className="truncate">John Doe</div>
+                  <div className="truncate">
+                    {displayName}
+                  </div>
                   <div className="text-gray-500 truncate">
-                    Level 5 • 🔥 12 day streak
+                    {user?.email || "Logged in"}
                   </div>
                 </div>
               )}
             </div>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors ${
+                  collapsed ? "px-0" : ""
+                }`}
+              >
+                <LogOut className="w-4 h-4" />
+                {!collapsed && <span>Logout</span>}
+              </button>
+            )}
           </div>
         </div>
       </aside>

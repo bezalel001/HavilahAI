@@ -2,19 +2,29 @@ import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 interface SignInProps {
-  onSignIn: (email: string, password: string) => void;
+  onSignIn: (email: string, password: string) => Promise<void>;
   onSwitchToSignUp: () => void;
+  isSubmitting: boolean;
+  error?: string | null;
+  onClearError?: () => void;
 }
 
-export function SignIn({ onSignIn, onSwitchToSignUp }: SignInProps) {
+export function SignIn({
+  onSignIn,
+  onSwitchToSignUp,
+  isSubmitting,
+  error,
+  onClearError,
+}: SignInProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSignIn(email, password);
+    onClearError?.();
+    await onSignIn(email, password);
   };
 
   return (
@@ -45,7 +55,10 @@ export function SignIn({ onSignIn, onSwitchToSignUp }: SignInProps) {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    onClearError?.();
+                    setEmail(e.target.value);
+                  }}
                   placeholder="your.email@example.com"
                   className="flex-1 bg-transparent outline-none placeholder:text-gray-400"
                   required
@@ -64,7 +77,10 @@ export function SignIn({ onSignIn, onSwitchToSignUp }: SignInProps) {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    onClearError?.();
+                    setPassword(e.target.value);
+                  }}
                   placeholder="Enter your password"
                   className="flex-1 bg-transparent outline-none placeholder:text-gray-400"
                   required
@@ -82,6 +98,12 @@ export function SignIn({ onSignIn, onSwitchToSignUp }: SignInProps) {
                 </button>
               </div>
             </div>
+
+            {error && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">
+                {error}
+              </div>
+            )}
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
@@ -105,9 +127,10 @@ export function SignIn({ onSignIn, onSwitchToSignUp }: SignInProps) {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Sign In
+              {isSubmitting ? "Signing In..." : "Sign In"}
             </button>
           </form>
 

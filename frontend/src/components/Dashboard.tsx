@@ -3,9 +3,14 @@ import { View } from '../App';
 
 interface DashboardProps {
   onNavigate: (view: View) => void;
+  userName?: string | null;
 }
 
-export function Dashboard({ onNavigate }: DashboardProps) {
+export function Dashboard({ onNavigate, userName }: DashboardProps) {
+  const firstName =
+    userName?.trim().split(" ")[0] ||
+    "Learner";
+
   const stats = [
     { label: 'Study Streak', value: '12 days', icon: Zap, color: 'from-orange-500 to-red-500' },
     { label: 'Total Points', value: '2,450', icon: Award, color: 'from-yellow-500 to-orange-500' },
@@ -37,7 +42,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="mb-2">Welcome back, John! 👋</h1>
+        <h1 className="mb-2">Welcome back, {firstName}! 👋</h1>
         <p className="text-gray-600">Ready to continue your learning journey?</p>
       </div>
 

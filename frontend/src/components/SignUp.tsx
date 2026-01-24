@@ -7,11 +7,20 @@ interface SignUpProps {
     email: string,
     password: string,
     language: string,
-  ) => void;
+  ) => Promise<void>;
   onSwitchToSignIn: () => void;
+  isSubmitting: boolean;
+  error?: string | null;
+  onClearError?: () => void;
 }
 
-export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
+export function SignUp({
+  onSignUp,
+  onSwitchToSignIn,
+  isSubmitting,
+  error,
+  onClearError,
+}: SignUpProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,8 +39,9 @@ export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
     { code: "ru", name: "Russian", flag: "🇷🇺" },
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    onClearError?.();
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
@@ -40,7 +50,7 @@ export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
       alert("Please agree to the Terms of Service and Privacy Policy");
       return;
     }
-    onSignUp(name, email, password, language);
+    await onSignUp(name, email, password, language);
   };
 
   return (
@@ -69,7 +79,10 @@ export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
                   id="name"
                   type="text"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    onClearError?.();
+                    setName(e.target.value);
+                  }}
                   placeholder="John Doe"
                   className="flex-1 bg-transparent outline-none placeholder:text-gray-400"
                   required
@@ -88,7 +101,10 @@ export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    onClearError?.();
+                    setEmail(e.target.value);
+                  }}
                   placeholder="your.email@example.com"
                   className="flex-1 bg-transparent outline-none placeholder:text-gray-400"
                   required
@@ -106,7 +122,10 @@ export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
                 <select
                   id="language"
                   value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
+                  onChange={(e) => {
+                    onClearError?.();
+                    setLanguage(e.target.value);
+                  }}
                   className="flex-1 bg-transparent outline-none appearance-none cursor-pointer"
                 >
                   {languages.map((lang) => (
@@ -129,7 +148,10 @@ export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
                   id="password"
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    onClearError?.();
+                    setPassword(e.target.value);
+                  }}
                   placeholder="Create a strong password"
                   className="flex-1 bg-transparent outline-none placeholder:text-gray-400"
                   required
@@ -166,7 +188,10 @@ export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
                   id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => {
+                    onClearError?.();
+                    setConfirmPassword(e.target.value);
+                  }}
                   placeholder="Re-enter your password"
                   className="flex-1 bg-transparent outline-none placeholder:text-gray-400"
                   required
@@ -208,12 +233,19 @@ export function SignUp({ onSignUp, onSwitchToSignIn }: SignUpProps) {
               </label>
             </div>
 
+            {error && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">
+                {error}
+              </div>
+            )}
+
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all"
+              disabled={isSubmitting}
+              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Create Account
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
