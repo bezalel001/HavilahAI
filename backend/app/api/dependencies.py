@@ -4,6 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.services.content_pipeline import ContentPipelineService
 from app.services.file_storage import FileStorageService
 from app.services.ocr import OcrService
+from app.services.quiz_generator import QuizGeneratorService
 
 
 def get_file_storage_service(request: Request) -> FileStorageService:
@@ -48,3 +49,7 @@ def get_ocr_service(request: Request) -> OcrService:
             detail="OCR service is not configured.",
         )
     return ocr_service
+
+
+def get_optional_quiz_generator_service(request: Request) -> QuizGeneratorService | None:
+    return getattr(request.app.state, "quiz_generator_service", None)

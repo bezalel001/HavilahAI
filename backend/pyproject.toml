@@ -34,6 +34,8 @@ dependencies = [
     "sqlalchemy>=2.0.44",
     "pytest>=8.3.3",
     "pytest-asyncio>=0.23.7",
+    "langchain>=0.2.7",
+    "langchain-openai>=0.1.8",
 ]
 
 [tool.pytest.ini_options]

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from langchain_openai import ChatOpenAI
 from minio import Minio
 from motor.motor_asyncio import AsyncIOMotorClient
 
@@ -9,6 +10,7 @@ from app.services.ai_client import AIServiceError, OpenAIContentGenerator
 from app.services.content_pipeline import ContentPipelineService
 from app.services.file_storage import FileStorageService
 from app.services.ocr import OcrService, OcrServiceError
+from app.services.quiz_generator import QuizGeneratorService
 
 
 def create_start_app_handler(app: FastAPI):
@@ -70,6 +72,19 @@ def create_start_app_handler(app: FastAPI):
                 app.state.ocr_service = None
         else:
             app.state.ocr_service = None
+
+        quiz_generator_service = None
+        if settings.OPENAI_API_KEY:
+            try:
+                quiz_llm = ChatOpenAI(
+                    model=settings.OPENAI_MODEL,
+                    temperature=0.3,
+                    api_key=settings.OPENAI_API_KEY,
+                )
+                quiz_generator_service = QuizGeneratorService(llm=quiz_llm)
+            except Exception:
+                quiz_generator_service = None
+        app.state.quiz_generator_service = quiz_generator_service
 
     return start_app
 
