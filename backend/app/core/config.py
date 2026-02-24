@@ -41,6 +41,8 @@ class Settings(BaseSettings):
 
     # Redis Settings
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    CELERY_QUEUE_NAME: str = os.getenv("CELERY_QUEUE_NAME", "havilah_tasks")
+    WS_REDIS_CHANNEL: str = os.getenv("WS_REDIS_CHANNEL", "havilah:events")
 
     # Email Settings
     SMTP_TLS: bool = os.getenv("SMTP_TLS", "true").lower() == "true"
@@ -55,10 +57,12 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+    ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-3-haiku-20240307")
     GROK_API_KEY: str = os.getenv("GROK_API_KEY", "")
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     AI_SERVICE: str = os.getenv("AI_SERVICE", "openai")
     CONTENT_PIPELINE_COLLECTION: str = os.getenv("CONTENT_PIPELINE_COLLECTION", "content_pipelines")
+    LEARNING_ASSETS_COLLECTION: str = os.getenv("LEARNING_ASSETS_COLLECTION", "learning_assets")
 
     # Storage Settings
     FILE_STORAGE_BACKEND: str = os.getenv("FILE_STORAGE_BACKEND", "local")

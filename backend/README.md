@@ -20,9 +20,10 @@ uv run fastapi dev app/main.py
 ### Key Commands
 - `uv run pytest` — execute backend tests when they’re added.
 - `uv run alembic revision --autogenerate -m "..."` — create DB migrations once Alembic config lands.
+- `uv run celery -A app.worker.celery_app:celery_app worker --loglevel=info` — run background task worker.
 
 ### Docker (recommended)
 ```bash
 docker compose up --build
 ```
-This starts the API, PostgreSQL, and MongoDB containers with sensible defaults for local work.
+This starts the API, Celery worker, realtime WebSocket server, PostgreSQL, MongoDB, and Redis containers for local work.

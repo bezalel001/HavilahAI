@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>From Notes to Learning Assets: A Multimodal LLM System for Automated Educational Content Generation</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg2: #1e293b;
+      --txt: #f8fafc;
+      --muted: #cbd5e1;
+      --acc: #22d3ee;
+      --card: rgba(255,255,255,0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--txt);
+      background: radial-gradient(900px 500px at 85% -10%, #334155, transparent 55%), linear-gradient(160deg, var(--bg), var(--bg2));
+      overflow: hidden;
+    }
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 56px 64px;
+      display: none;
+      grid-template-rows: auto 1fr auto;
+      gap: 20px;
+    }
+    .slide.active { display: grid; }
+    h1 { margin: 0; font-size: 52px; }
+    h2 { margin: 0; font-size: 40px; }
+    p, li { font-size: 24px; color: var(--muted); line-height: 1.35; }
+    ul { margin: 0; padding-left: 28px; display: grid; gap: 12px; }
+    .kicker { color: var(--acc); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; font-size: 14px; }
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,.16); border-radius: 14px; padding: 16px; }
+    .mono { font-family: ui-monospace, Menlo, monospace; font-size: 20px; color: #e2e8f0; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .foot { display: flex; justify-content: space-between; color: #94a3b8; font-size: 16px; }
+    @media (max-width: 900px) {
+      .slide { padding: 24px; }
+      h1 { font-size: 34px; }
+      h2 { font-size: 30px; }
+      p, li { font-size: 18px; }
+      .grid2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <section class="slide active">
+    <div>
+      <div class="kicker">Practical Work in AI</div>
+      <h1>From Notes to Learning Assets: A Multimodal LLM System for Automated Educational Content Generation</h1>
+    </div>
+    <div class="card">
+      <p>Michael Ogu - BSc Artificial Intelligence, JKU Linz</p>
+      <p>Today: working MVP with async AI processing + realtime updates.</p>
+    </div>
+    <div class="foot"><span>Use ← / →</span><span>1 / 6</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>Problem and Solution</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <p><strong>Problem:</strong> Students get dense notes that are hard to revise quickly.</p>
+      </div>
+      <div class="card">
+        <p><strong>Solution:</strong> Upload once, get AI summary, key points, quizzes, and flashcards.</p>
+      </div>
+    </div>
+    <div class="foot"><span>Value proposition</span><span>2 / 6</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>Architecture (Implemented)</h2></div>
+    <div class="card">
+      <p class="mono">Frontend -> FastAPI -> PostgreSQL/MongoDB\nFastAPI -> Redis -> Celery Worker\nWorker -> Redis Pub/Sub -> Node WebSocket -> Frontend</p>
+    </div>
+    <ul>
+      <li>FastAPI backend APIs are live.</li>
+      <li>Celery handles heavy AI jobs in background.</li>
+      <li>WebSocket pushes live task status to UI.</li>
+    </ul>
+    <div class="foot"><span>Technical core</span><span>3 / 6</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>Requirements vs Implementation</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <p><strong>Implemented</strong></p>
+        <ul>
+          <li>FastAPI + Auth + PostgreSQL + MongoDB</li>
+          <li>Uploads, OCR, AI summarization, quiz, flashcards</li>
+          <li>Goals/progress/topics/chat/feed APIs</li>
+          <li>Node WebSocket server + Celery async queue</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p><strong>Planned / Partial</strong></p>
+        <ul>
+          <li>Flutter production app</li>
+          <li>Social features + study groups + leaderboards</li>
+          <li>Offline mode + push notifications</li>
+          <li>Kubernetes + full CI/CD + full GDPR program</li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot"><span>Honest scope</span><span>4 / 6</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>Live Demo Flow</h2></div>
+    <ul>
+      <li>Open Upload page -> Async AI Content Processing.</li>
+      <li>Click <strong>Queue Async Processing</strong>.</li>
+      <li>Show status: <span class="mono">PENDING -> STARTED -> SUCCESS</span>.</li>
+      <li>Show generated summary and key points.</li>
+      <li>Show realtime toast/banner updates.</li>
+    </ul>
+    <div class="foot"><span>2-minute demo</span><span>5 / 6</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>Outcome and Next Steps</h2></div>
+    <ul>
+      <li>End-to-end AI learning pipeline is working.</li>
+      <li>Async + realtime flow improves UX and scalability.</li>
+      <li>Next: CI/CD, performance testing, mobile production polish.</li>
+    </ul>
+    <div class="card"><p>Thank you. Questions?</p></div>
+    <div class="foot"><span>Closing</span><span>6 / 6</span></div>
+  </section>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    let i = 0;
+    const show = (n) => {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+    };
+    document.addEventListener('keydown', (e) => {
+      if (['ArrowRight','PageDown',' '].includes(e.key)) { e.preventDefault(); show(i + 1); }
+      if (['ArrowLeft','PageUp'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+    });
+    document.addEventListener('click', () => show(i + 1));
+  </script>
+</body>
+</html>

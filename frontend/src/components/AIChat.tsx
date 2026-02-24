@@ -1,5 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from "react";
 import { Send, Mic, Image, Sparkles, Volume2 } from 'lucide-react';
+import { createChatSession, postChatSessionMessage } from "../lib/api";
+import { Markdown } from "./ui/Markdown";
 
 interface Message {
   id: number;
@@ -21,6 +23,10 @@ export function AIChat() {
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [speakingId, setSpeakingId] = useState<number | null>(null);
+  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   const suggestedQuestions = [
     "Explain GDPR in simple terms",
@@ -32,6 +38,18 @@ export function AIChat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  useEffect(() => {
+    const initSession = async () => {
+      try {
+        const session = await createChatSession("AI Tutor");
+        setSessionId(session.session_id);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unable to start chat session.");
+      }
+    };
+    initSession();
+  }, []);
 
   const handleSend = () => {
     if (!inputText.trim()) return;
@@ -47,36 +65,55 @@ export function AIChat() {
     setInputText('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: messages.length + 2,
-        text: generateAIResponse(inputText),
-        sender: 'ai',
-        timestamp: new Date(),
-        hasAudio: true,
-      };
-      setMessages(prev => [...prev, aiResponse]);
+    if (!sessionId) {
+      setError("Chat session is not ready yet.");
       setIsTyping(false);
-    }, 1500);
-  };
-
-  const generateAIResponse = (question: string): string => {
-    if (question.toLowerCase().includes('gdpr')) {
-      return "GDPR (General Data Protection Regulation) is an EU law that protects people's personal data. Think of it as rules that companies must follow to keep your information safe. Key points: 1) Companies need your permission to use your data, 2) You can ask to see or delete your data, 3) Companies must report data breaches within 72 hours. Would you like me to explain any specific aspect in more detail?";
-    } else if (question.toLowerCase().includes('photosynthesis')) {
-      return "Photosynthesis is how plants make their food! Here's the simple version: Plants take in sunlight (energy), water (from roots), and CO2 (from air). Using chlorophyll (the green stuff), they convert these into glucose (sugar for energy) and oxygen (what we breathe). The equation: 6CO2 + 6H2O + light → C6H12O6 + 6O2. Want me to break down any part further?";
-    } else if (question.toLowerCase().includes('quantum')) {
-      return "Quantum computing uses quantum mechanics to process information in a fundamentally different way than regular computers. While normal computers use bits (0 or 1), quantum computers use 'qubits' that can be both 0 and 1 simultaneously (superposition). This allows them to solve certain problems exponentially faster. Think of it like checking all paths in a maze at once, rather than one at a time. Interested in learning about specific applications?";
-    } else if (question.toLowerCase().includes('derivative') || question.toLowerCase().includes('calculus')) {
-      return "A derivative measures how fast something changes! If you're driving, speed is the derivative of distance - it tells you how quickly your position changes over time. Mathematically, if f(x) = x², the derivative f'(x) = 2x. This means at any point x, the slope of the curve is 2x. For example, at x=3, the slope is 6. Would you like to see more examples or practice problems?";
-    } else {
-      return "That's a great question! I can help you understand this better. Could you provide a bit more context or let me know which aspect you'd like to focus on? I can explain it using text, and I can also generate visual aids or audio explanations if that helps your learning style!";
+      return;
     }
+
+    postChatSessionMessage(sessionId, inputText)
+      .then((response) => {
+        const latest = response.messages.find((msg) => msg.role === "assistant");
+        if (latest) {
+          const aiResponse: Message = {
+            id: messages.length + 2,
+            text: latest.content,
+            sender: "ai",
+            timestamp: new Date(),
+            hasAudio: true,
+          };
+          setMessages((prev) => [...prev, aiResponse]);
+        }
+        setIsTyping(false);
+      })
+      .catch((err) => {
+        setIsTyping(false);
+        setError(err instanceof Error ? err.message : "Unable to send message.");
+      });
   };
 
   const handleSuggestedQuestion = (question: string) => {
     setInputText(question);
+  };
+
+  const handleSpeak = (message: Message) => {
+    if (message.sender !== "ai") return;
+    if (!message.text.trim()) return;
+    if (speakingId === message.id) {
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(message.text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+    speechRef.current = utterance;
+    setSpeakingId(message.id);
+    utterance.onend = () => {
+      setSpeakingId((prev) => (prev === message.id ? null : prev));
+    };
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -84,6 +121,7 @@ export function AIChat() {
       <div className="mb-6">
         <h1 className="mb-2">AI Tutor Chat 💬</h1>
         <p className="text-gray-600">Get instant help with any topic, anytime</p>
+        {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
       </div>
 
       {/* Chat Container */}
@@ -108,11 +146,14 @@ export function AIChat() {
                     <span className="text-purple-600">AI Tutor</span>
                   </div>
                 )}
-                <p className="whitespace-pre-wrap">{message.text}</p>
+                <Markdown content={message.text} className="text-sm" />
                 {message.hasAudio && (
-                  <button className="mt-3 flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-colors">
+                  <button
+                    onClick={() => handleSpeak(message)}
+                    className="mt-3 flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-colors"
+                  >
                     <Volume2 className="w-4 h-4" />
-                    <span>Listen to explanation</span>
+                    <span>{speakingId === message.id ? "Stop audio" : "Listen to explanation"}</span>
                   </button>
                 )}
                 <div className={`text-xs mt-2 ${message.sender === 'user' ? 'text-white text-opacity-70' : 'text-gray-500'}`}>

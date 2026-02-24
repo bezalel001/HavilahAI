@@ -7,6 +7,7 @@ from app.api.routes import (
     dashboard,
     debug,
     flashcards,
+    goals,
     learning_feed,
     ocr,
     progress,
@@ -23,6 +24,7 @@ api_router.include_router(uploads.router, prefix="/uploads", tags=["uploads"])
 api_router.include_router(content.router, prefix="/content", tags=["content"])
 api_router.include_router(ocr.router, prefix="/ocr", tags=["ocr"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
+api_router.include_router(goals.router, prefix="/goals", tags=["goals"])
 api_router.include_router(learning_feed.router, prefix="/feed", tags=["feed"])
 api_router.include_router(quiz.router, prefix="/quiz", tags=["quiz"])
 api_router.include_router(flashcards.router, prefix="/flashcards", tags=["flashcards"])

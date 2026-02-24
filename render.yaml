@@ -1,0 +1,58 @@
+services:
+  - type: web
+    name: havilah-backend
+    runtime: python
+    rootDir: backend
+    plan: starter
+    autoDeploy: true
+    buildCommand: uv sync --frozen
+    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.13.0
+      - key: PROJECT_NAME
+        value: Havilah EdTech API
+      - key: VERSION
+        value: 1.0.0
+      - key: API_V1_STR
+        value: /api/v1
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: MONGODB_URL
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: havilah_edtech_content
+      - key: BACKEND_CORS_ORIGINS
+        sync: false
+      - key: AI_SERVICE
+        value: openai
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-3-haiku-20240307
+      - key: FILE_STORAGE_BACKEND
+        value: minio
+      - key: MINIO_ENDPOINT
+        sync: false
+      - key: MINIO_ACCESS_KEY
+        sync: false
+      - key: MINIO_SECRET_KEY
+        sync: false
+      - key: MINIO_BUCKET_NAME
+        value: havilah-edtech
+      - key: MINIO_SECURE
+        value: "true"
+      - key: UPLOAD_MAX_FILE_SIZE_MB
+        value: "10"
+      - key: UPLOAD_ALLOWED_CONTENT_TYPES
+        value: image/jpeg,image/png,application/pdf
+      - key: OCR_ENABLED
+        value: "false"
+      - key: OCR_LANGUAGE
+        value: eng

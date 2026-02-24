@@ -14,6 +14,30 @@ class LearningVideo(BaseModel):
     comments: int
     thumbnail: str
     color: str
+    summary: str | None = None
+    key_points: List[str] = []
+    source: str = "upload"
+    liked: bool = False
+    saved: bool = False
+
+
+class FeedLikeRequest(BaseModel):
+    liked: bool
+
+
+class FeedLikeResponse(BaseModel):
+    video_id: int
+    likes: int
+    liked: bool
+
+
+class FeedSaveRequest(BaseModel):
+    saved: bool
+
+
+class FeedSaveResponse(BaseModel):
+    video_id: int
+    saved: bool
 
 
 class LearningFeedResponse(BaseModel):

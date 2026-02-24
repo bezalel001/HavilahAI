@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>From Notes to Learning Assets: A Multimodal LLM System for Automated Educational Content Generation</title>
+  <style>
+    :root {
+      --bg1: #f3e8ff;
+      --bg2: #fdf2f8;
+      --card: #ffffff;
+      --line: #e9d5ff;
+      --text: #0f172a;
+      --muted: #334155;
+      --accent: #7c3aed;
+      --accent2: #ec4899;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "SF Pro Display", "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1100px 650px at 85% -10%, rgba(124,58,237,.26) 0%, transparent 60%),
+        radial-gradient(900px 540px at 20% 105%, rgba(236,72,153,.22) 0%, transparent 58%),
+        radial-gradient(850px 500px at -10% 110%, rgba(37,99,235,.22) 0%, transparent 55%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+      overflow: hidden;
+    }
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 56px 68px;
+      display: none;
+      grid-template-rows: auto 1fr auto;
+      gap: 20px;
+    }
+    .slide.active { display: grid; }
+    .kicker {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    h1 { margin: 0; font-size: 50px; line-height: 1.08; }
+    h2 { margin: 0; font-size: 36px; line-height: 1.12; }
+    h3 { margin: 0 0 8px; font-size: 22px; }
+    p, li { color: var(--muted); font-size: 22px; line-height: 1.35; }
+    ul { margin: 0; padding-left: 24px; display: grid; gap: 10px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-content: start; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-content: start; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.10);
+    }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px; color: #1e293b; }
+    .small { font-size: 17px; }
+    .tiny { font-size: 14px; color: #475569; }
+    .ok { color: var(--ok); font-weight: 700; }
+    .warn { color: var(--warn); font-weight: 700; }
+    .footer { display: flex; justify-content: space-between; color: #6b21a8; font-size: 15px; }
+    .callout {
+      border-left: 4px solid var(--accent);
+      padding: 10px 12px;
+      background: linear-gradient(90deg, rgba(124,58,237,.10), rgba(236,72,153,.08));
+      border-radius: 8px;
+    }
+    .steps { counter-reset: s; margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .steps li { padding-left: 36px; position: relative; }
+    .steps li::before {
+      counter-increment: s;
+      content: counter(s);
+      position: absolute; left: 0; top: 1px;
+      width: 24px; height: 24px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #7c3aed, #ec4899);
+      display: grid; place-items: center;
+      color: #ffffff; font-size: 13px; font-weight: 700;
+    }
+    .kbd { font-family: ui-monospace, monospace; background: rgba(255,255,255,.14); border-radius: 6px; padding: 1px 7px; }
+    @media (max-width: 1100px) {
+      .slide { padding: 28px 20px; }
+      h1 { font-size: 36px; }
+      h2 { font-size: 30px; }
+      p, li { font-size: 18px; }
+      .grid2, .grid3 { grid-template-columns: 1fr; }
+      .mono { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <section class="slide active">
+    <div>
+      <div class="kicker">Practical Work in AI - Expert Walkthrough</div>
+      <h1>From Notes to Learning Assets: A Multimodal LLM System for Automated Educational Content Generation</h1>
+    </div>
+      <div class="grid2">
+      <div class="card">
+        <h3>Presenter</h3>
+        <p>Michael Ogu<br/>BSc Artificial Intelligence<br/>Johannes Kepler University Linz</p>
+      </div>
+      <div class="card">
+        <h3>Session Goal (20-30 min)</h3>
+        <ul>
+          <li>Explain full functionality, not just UI</li>
+          <li>Show AI + software architecture choices</li>
+          <li>Cover tradeoffs, limitations, and roadmap</li>
+        </ul>
+        <p class="small"><strong>Original project title:</strong> Havilah: AI-Powered Learning Platform for Gen Z</p>
+      </div>
+    </div>
+    <div class="footer"><span>Controls: <span class="kbd">←</span>/<span class="kbd">→</span></span><span>1 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>1. Problem Framing and Product Hypothesis</h2></div>
+    <div>
+      <ul>
+        <li>Input modality mismatch: students store knowledge in long documents, but revise in short bursts.</li>
+        <li>Cognitive bottleneck: dense language and weak retrieval practice reduce retention.</li>
+        <li>Hypothesis: AI-generated micro-learning assets + low-latency interactions improve consistency and outcomes.</li>
+      </ul>
+      <div class="callout"><p><strong>Core claim:</strong> one upload can be transformed into multiple learning formats aligned with Gen Z usage patterns.</p></div>
+    </div>
+    <div class="footer"><span>Context</span><span>2 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>2. System Overview (Functional Blocks)</h2></div>
+    <div class="grid3">
+      <div class="card"><h3>Ingestion</h3><p>Camera/file upload, MIME/type validation, storage abstraction (local/MinIO).</p></div>
+      <div class="card"><h3>Understanding</h3><p>OCR + text extraction + LLM content analysis and simplification.</p></div>
+      <div class="card"><h3>Learning Assets</h3><p>Summary, key points, quiz items, flashcards, feed-ready snippets.</p></div>
+      <div class="card"><h3>Engagement</h3><p>Feed, chat tutor, goals, progress, topic exploration.</p></div>
+      <div class="card"><h3>Async Runtime</h3><p>Queue heavy jobs with Celery + Redis.</p></div>
+      <div class="card"><h3>Realtime UX</h3><p>Push status updates through Node WebSocket relay.</p></div>
+    </div>
+    <div class="footer"><span>Capability map</span><span>3 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>3. Data and Control Plane Architecture</h2></div>
+    <div class="card">
+      <p class="mono">Frontend -> FastAPI -> PostgreSQL / MongoDB / Storage\nFastAPI -> Redis (broker/backend) -> Celery Worker\nWorker -> Redis Pub/Sub -> Node.js WS -> Frontend</p>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>Stateful stores</h3><p>PostgreSQL: auth + relational entities.<br/>MongoDB: generated content docs and flexible assets.</p></div>
+      <div class="card"><h3>Event path</h3><p>Task lifecycle events are published to Redis and streamed to subscribed clients.</p></div>
+    </div>
+    <div class="footer"><span>Architecture</span><span>4 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>4. LLM Strategy: OpenAI + Anthropic</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Provider Use</h3>
+        <ul>
+          <li>OpenAI is primary for content planning and quiz/asset generation.</li>
+          <li>Anthropic support is present for selected learning asset flows.</li>
+          <li>Fallback logic exists where multi-provider service wrappers are used.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Why this design</h3>
+        <ul>
+          <li>Operational resilience across provider outages/rate limits.</li>
+          <li>Model-choice flexibility per task quality/cost profile.</li>
+          <li>Separation of provider clients from route/controller logic.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Model layer</span><span>5 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>5. Upload and Extraction Pipeline</h2></div>
+    <div>
+      <ol class="steps">
+        <li>Client uploads file (camera/image/document).</li>
+        <li>Backend validates content type and size.</li>
+        <li>Storage service writes to local or MinIO-compatible backend.</li>
+        <li>Extractor routes by type: image OCR, PDF parser, DOCX parser, plain text decode.</li>
+        <li>Normalized text is passed into LLM asset generation stage.</li>
+      </ol>
+      <div class="callout"><p>This decouples ingestion from AI generation, enabling independent improvements per stage.</p></div>
+    </div>
+    <div class="footer"><span>Input pipeline</span><span>6 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>6. OCR and Content Understanding</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Current OCR</h3>
+        <ul>
+          <li>pytesseract-based image text extraction</li>
+          <li>Language selection available by config</li>
+          <li>Graceful failure handling when OCR unavailable</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>AI Outputs</h3>
+        <ul>
+          <li>Summary and key concepts</li>
+          <li>Simplified concept mappings</li>
+          <li>Quiz and flashcard generation</li>
+          <li>Feed-oriented concise explanations</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Perception + reasoning</span><span>7 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>7. Learning Asset Generation Logic</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Asset Types</h3>
+        <ul>
+          <li>Structured summary</li>
+          <li>Flashcards (front/back/category)</li>
+          <li>Multiple-choice quiz items + explanations</li>
+          <li>Topic modules and feed snippets</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Prompt/Output Design</h3>
+        <ul>
+          <li>Constrained JSON output contracts</li>
+          <li>Post-parse schema validation in API layer</li>
+          <li>Fallback and error mapping for robustness</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Generation layer</span><span>8 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>8. Why Async Queueing Was Added</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Sync-only limitations</h3>
+        <ul>
+          <li>Long request latency</li>
+          <li>Higher timeout risk</li>
+          <li>Poor scalability under concurrency</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Queue-based flow</h3>
+        <ul>
+          <li>API enqueues and returns <span class="mono">task_id</span> immediately</li>
+          <li>Celery worker processes heavy AI workload</li>
+          <li>Frontend polls and receives live event updates</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Runtime design</span><span>9 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>9. Realtime Event Model</h2></div>
+    <div>
+      <ul>
+        <li>Lifecycle events: <span class="mono">enqueued, started, completed, failed</span>.</li>
+        <li>Backend publishes task events to Redis channel.</li>
+        <li>Node WebSocket service subscribes to channel and pushes to clients.</li>
+        <li>Client filters events by user identity and renders toasts/status banner.</li>
+      </ul>
+      <div class="callout"><p>Result: user gets immediate feedback without waiting on long HTTP round-trips.</p></div>
+    </div>
+    <div class="footer"><span>Event-driven UX</span><span>10 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>10. Product Functionality Walkthrough</h2></div>
+    <div class="grid3">
+      <div class="card"><h3>Auth</h3><p>Register/login/token-based access control.</p></div>
+      <div class="card"><h3>Uploads</h3><p>Validated ingestion with image/document support.</p></div>
+      <div class="card"><h3>Content</h3><p>Process, simplify, and retrieve generated assets.</p></div>
+      <div class="card"><h3>Feed</h3><p>Short-form educational cards with interactions.</p></div>
+      <div class="card"><h3>Quiz/Flashcards</h3><p>Generated practice assets + attempt tracking.</p></div>
+      <div class="card"><h3>Chat/Topics/Goals</h3><p>Tutor interactions, topic modules, progress planning.</p></div>
+    </div>
+    <div class="footer"><span>Feature surface</span><span>11 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>11. Data Modeling Choices</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Relational (PostgreSQL)</h3>
+        <ul>
+          <li>Users and auth-linked entities</li>
+          <li>Attempt and interaction records</li>
+          <li>Deterministic integrity constraints</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Document (MongoDB)</h3>
+        <ul>
+          <li>LLM-generated nested payloads</li>
+          <li>Flexible schema evolution</li>
+          <li>Fast iteration for content artifacts</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Persistence strategy</span><span>12 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>12. Reliability and Failure Handling</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Failure cases handled</h3>
+        <ul>
+          <li>Invalid files / unsupported MIME types</li>
+          <li>Missing OCR dependencies</li>
+          <li>LLM provider errors mapped to explicit API responses</li>
+          <li>Async task failure surfaced in realtime UI</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Operational improvements planned</h3>
+        <ul>
+          <li>Retry policy tuning and dead-letter queues</li>
+          <li>Telemetry on task duration and failure rates</li>
+          <li>Prompt/version auditability for regressions</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Robustness</span><span>13 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>13. Security and Compliance Posture</h2></div>
+    <div>
+      <ul>
+        <li>JWT-based authenticated endpoints and role-based guards for privileged actions.</li>
+        <li>Input validation at schema boundaries and strict request parsing.</li>
+        <li>Config-driven security and GDPR flags exist; compliance program is still ongoing work.</li>
+      </ul>
+      <div class="callout"><p><strong>Honest status:</strong> GDPR intent is implemented in configuration and architecture decisions, but full legal/compliance rollout remains a roadmap item.</p></div>
+    </div>
+    <div class="footer"><span>Security and policy</span><span>14 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>14. Evaluation and Testing</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3>Current tests</h3>
+        <ul>
+          <li>API-level tests for auth, content, uploads, OCR, and frontend endpoints</li>
+          <li>Schema and status-code verification</li>
+          <li>Database override patterns for isolation</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Evaluation roadmap</h3>
+        <ul>
+          <li>Task quality metrics (answer quality, hallucination rate)</li>
+          <li>Latency SLOs and throughput tests</li>
+          <li>E2E scenario coverage and load tests</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Quality engineering</span><span>15 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>15. Requirements Comparison (Transparent View)</h2></div>
+    <div class="grid2">
+      <div class="card">
+        <h3 class="ok">Implemented</h3>
+        <ul>
+          <li>FastAPI backend + auth + DB integrations</li>
+          <li>Upload/OCR/AI pipeline with generated learning assets</li>
+          <li>Goals, progress, chat, feed, topics</li>
+          <li>Node.js WebSocket + Celery queue architecture</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 class="warn">Partial / Planned</h3>
+        <ul>
+          <li>Flutter production client</li>
+          <li>Social groups + leaderboards + offline + push</li>
+          <li>Kubernetes manifests and full CI/CD</li>
+          <li>Full GDPR and data residency operations</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer"><span>Scope management</span><span>16 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>16. Live Demo Script (5-7 min inside talk)</h2></div>
+    <div>
+      <ol class="steps">
+        <li>Sign in and open Upload page.</li>
+        <li>Queue async content processing from demo card.</li>
+        <li>Show task lifecycle and realtime notifications.</li>
+        <li>Inspect generated summary, key points, and assets.</li>
+        <li>Open Feed/Quiz/Flashcards to show downstream utility.</li>
+      </ol>
+    </div>
+    <div class="footer"><span>Execution plan</span><span>17 / 18</span></div>
+  </section>
+
+  <section class="slide">
+    <div><h2>17. Closing: Contributions and Next Milestones</h2></div>
+    <div>
+      <ul>
+        <li>Delivered a working multi-service AI learning platform MVP.</li>
+        <li>Added production-relevant async and realtime patterns.</li>
+        <li>Established a clear path from prototype to scalable product.</li>
+      </ul>
+      <div class="callout"><p>Open to questions on model choices, orchestration tradeoffs, and evaluation methodology.</p></div>
+    </div>
+    <div class="footer"><span>Thank you</span><span>18 / 18</span></div>
+  </section>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    let i = 0;
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+    }
+    document.addEventListener('keydown', (e) => {
+      if (['ArrowRight','PageDown',' '].includes(e.key)) { e.preventDefault(); show(i + 1); }
+      if (['ArrowLeft','PageUp'].includes(e.key)) { e.preventDefault(); show(i - 1); }
+      if (e.key === 'Home') show(0);
+      if (e.key === 'End') show(slides.length - 1);
+    });
+    document.addEventListener('click', () => show(i + 1));
+    show(0);
+  </script>
+</body>
+</html>

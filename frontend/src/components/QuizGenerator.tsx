@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Brain,
   CheckCircle,
@@ -12,6 +12,16 @@ import {
   Loader,
   Settings,
 } from "lucide-react";
+import {
+  fetchTopics,
+  generateQuiz,
+  listUploads,
+  submitQuizAttempt,
+  deleteUpload,
+  type QuizResponse,
+  type TopicCard,
+} from "../lib/api";
+import { Markdown } from "./ui/Markdown";
 
 type QuizSource = "uploaded" | "topic" | "custom";
 
@@ -40,60 +50,50 @@ export function QuizGenerator() {
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [score, setScore] = useState(0);
-  const [answers, setAnswers] = useState<boolean[]>([]);
+  const [answers, setAnswers] = useState<number[]>([]);
+  const [quizData, setQuizData] = useState<QuizResponse | null>(null);
+  const [uploadedMaterials, setUploadedMaterials] = useState<UploadedMaterial[]>([]);
+  const [popularTopics, setPopularTopics] = useState<TopicCard[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteUploadId, setDeleteUploadId] = useState<string | null>(null);
 
-  // Mock uploaded materials
-  const uploadedMaterials: UploadedMaterial[] = [
-    {
-      id: "1",
-      title: "EU Data Protection & GDPR Notes",
-      type: "PDF",
-      uploadDate: "2 days ago",
-    },
-    {
-      id: "2",
-      title: "Quantum Physics Lecture",
-      type: "Image",
-      uploadDate: "5 days ago",
-    },
-    {
-      id: "3",
-      title: "Calculus Chapter 3",
-      type: "Document",
-      uploadDate: "1 week ago",
-    },
-    {
-      id: "4",
-      title: "Biology Lab Notes",
-      type: "PDF",
-      uploadDate: "2 weeks ago",
-    },
-  ];
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const [uploads, topics] = await Promise.all([listUploads(), fetchTopics()]);
+        setUploadedMaterials(
+          uploads.items.map((item) => ({
+            id: item.file_id,
+            title: item.original_filename,
+            type: item.content_type,
+            uploadDate: new Date(item.created_at).toLocaleDateString(),
+          }))
+        );
+        setPopularTopics(topics.popular);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load quiz sources.");
+      }
+    };
+    loadData();
+  }, []);
 
-  // Popular topics from Topic Explorer
-  const popularTopics = [
-    {
-      id: 1,
-      name: "GDPR & Data Privacy",
-      icon: "🔒",
-      category: "Law & Policy",
-    },
-    { id: 2, name: "Quantum Physics", icon: "⚛️", category: "Physics" },
-    {
-      id: 3,
-      name: "Calculus Fundamentals",
-      icon: "📊",
-      category: "Mathematics",
-    },
-    { id: 4, name: "Molecular Biology", icon: "🧬", category: "Biology" },
-    { id: 5, name: "EU Economic Policy", icon: "💰", category: "Economics" },
-    {
-      id: 6,
-      name: "Climate Change",
-      icon: "🌍",
-      category: "Environmental Science",
-    },
-  ];
+  const handleDeleteUpload = async () => {
+    if (!deleteUploadId) return;
+    setError(null);
+    try {
+      await deleteUpload(deleteUploadId);
+      setUploadedMaterials((prev) =>
+        prev.filter((material) => material.id !== deleteUploadId),
+      );
+      if (selectedMaterial === deleteUploadId) {
+        setSelectedMaterial(null);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete upload.");
+    } finally {
+      setDeleteUploadId(null);
+    }
+  };
 
   const languages = [
     { code: "en", name: "English", flag: "🇬🇧" },
@@ -537,28 +537,44 @@ export function QuizGenerator() {
 
   const quiz = {
     title:
-      quizSource === "uploaded" && selectedMaterial
-        ? uploadedMaterials.find((m) => m.id === selectedMaterial)?.title ||
-          "Quiz"
+      quizData?.title ??
+      (quizSource === "uploaded" && selectedMaterial
+        ? uploadedMaterials.find((m) => m.id === selectedMaterial)?.title || "Quiz"
         : quizSource === "topic" && selectedMaterial
-          ? popularTopics.find((t) => t.id.toString() === selectedMaterial)
-              ?.name || "Quiz"
-          : customTopic || "EU Data Protection & GDPR",
+          ? popularTopics.find((t) => t.id.toString() === selectedMaterial)?.name || "Quiz"
+          : customTopic || "EU Data Protection & GDPR"),
     subject:
-      quizSource === "topic" && selectedMaterial
-        ? popularTopics.find((t) => t.id.toString() === selectedMaterial)
-            ?.category || "General"
-        : "Generated Quiz",
-    difficulty: difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
-    questions: getQuizQuestions(),
+      quizData?.subject ??
+      (quizSource === "topic" && selectedMaterial
+        ? popularTopics.find((t) => t.id.toString() === selectedMaterial)?.category || "General"
+        : "Generated Quiz"),
+    difficulty: quizData?.difficulty ?? difficulty.charAt(0).toUpperCase() + difficulty.slice(1),
+    questions: quizData?.questions ?? getQuizQuestions(),
   };
 
-  const handleGenerateQuiz = () => {
+  const handleGenerateQuiz = async () => {
     setStep("generating");
-    // Simulate AI generation
-    setTimeout(() => {
+    setError(null);
+    try {
+      let topicName = customTopic;
+      if (quizSource === "uploaded" && selectedMaterial) {
+        topicName =
+          uploadedMaterials.find((m) => m.id === selectedMaterial)?.title || "Quiz";
+      } else if (quizSource === "topic" && selectedMaterial) {
+        topicName =
+          popularTopics.find((t) => t.id.toString() === selectedMaterial)?.name || "Quiz";
+      }
+      const data = await generateQuiz({
+        topic: topicName,
+        difficulty,
+        question_count: questionCount,
+      });
+      setQuizData(data);
       setStep("quiz");
-    }, 2500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to generate quiz.");
+      setStep("configure");
+    }
   };
 
   const handleStartOver = () => {
@@ -572,6 +588,7 @@ export function QuizGenerator() {
     setShowResult(false);
     setScore(0);
     setAnswers([]);
+    setQuizData(null);
   };
 
   const handleAnswerSelect = (index: number) => {
@@ -584,11 +601,21 @@ export function QuizGenerator() {
 
     const isCorrect =
       selectedAnswer === quiz.questions[currentQuestion].correct;
-    setAnswers([...answers, isCorrect]);
+    const nextAnswers = [...answers, selectedAnswer];
+    setAnswers(nextAnswers);
     if (isCorrect) {
       setScore(score + 1);
     }
     setShowResult(true);
+    if (currentQuestion === quiz.questions.length - 1) {
+      submitQuizAttempt({
+        topic: quiz.title,
+        question_count: quiz.questions.length,
+        answers: nextAnswers,
+      }).catch((err) => {
+        setError(err instanceof Error ? err.message : "Failed to submit quiz attempt.");
+      });
+    }
   };
 
   const handleNext = () => {
@@ -621,6 +648,7 @@ export function QuizGenerator() {
           <p className="text-gray-600">
             Generate personalized quizzes from your materials or any topic
           </p>
+          {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 items-stretch">
@@ -728,6 +756,7 @@ export function QuizGenerator() {
           </button>
           <h1 className="mb-2">Configure Your Quiz ⚙️</h1>
           <p className="text-gray-600">Customize your quiz settings</p>
+          {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
         </div>
 
         <div className="space-y-4 sm:space-y-6">
@@ -744,27 +773,34 @@ export function QuizGenerator() {
             {quizSource === "uploaded" && (
               <div className="space-y-3">
                 {uploadedMaterials.map((material) => (
-                  <button
-                    key={material.id}
-                    onClick={() => setSelectedMaterial(material.id)}
-                    className={`w-full p-4 rounded-xl text-left transition-all border-2 ${
-                      selectedMaterial === material.id
-                        ? "border-purple-600 bg-purple-50"
-                        : "border-gray-200 hover:border-purple-300"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium mb-1">{material.title}</div>
-                        <div className="text-sm text-gray-600">
-                          {material.type} • Uploaded {material.uploadDate}
+                  <div key={material.id} className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedMaterial(material.id)}
+                      className={`flex-1 p-4 rounded-xl text-left transition-all border-2 ${
+                        selectedMaterial === material.id
+                          ? "border-purple-600 bg-purple-50"
+                          : "border-gray-200 hover:border-purple-300"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium mb-1">{material.title}</div>
+                          <div className="text-sm text-gray-600">
+                            {material.type} • Uploaded {material.uploadDate}
+                          </div>
                         </div>
+                        {selectedMaterial === material.id && (
+                          <CheckCircle className="w-5 h-5 text-purple-600" />
+                        )}
                       </div>
-                      {selectedMaterial === material.id && (
-                        <CheckCircle className="w-5 h-5 text-purple-600" />
-                      )}
-                    </div>
-                  </button>
+                    </button>
+                    <button
+                      onClick={() => setDeleteUploadId(material.id)}
+                      className="px-3 py-3 text-sm border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-all"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 ))}
               </div>
             )}
@@ -903,6 +939,31 @@ export function QuizGenerator() {
             Generate Quiz with AI
           </button>
         </div>
+
+        {deleteUploadId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl">
+              <h3 className="mb-2">Delete upload?</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                This removes the upload and any generated learning assets.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => setDeleteUploadId(null)}
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteUpload}
+                  className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1087,7 +1148,12 @@ export function QuizGenerator() {
 
       {/* Question Card */}
       <div className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg">
-        <h2 className="mb-6 sm:mb-8">{currentQ.question}</h2>
+        <div className="mb-6 sm:mb-8">
+          <Markdown
+            content={currentQ.question}
+            className="text-lg sm:text-xl text-gray-900"
+          />
+        </div>
 
         <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
           {currentQ.options.map((option, index) => {
@@ -1112,7 +1178,11 @@ export function QuizGenerator() {
                 } ${showResult ? "cursor-default" : "cursor-pointer"}`}
               >
                 <div className="flex items-center justify-between">
-                  <span>{option}</span>
+                  <Markdown
+                    content={option}
+                    inline
+                    className="text-sm sm:text-base text-gray-900"
+                  />
                   {showCorrectAnswer && (
                     <CheckCircle className="w-6 h-6 text-green-600" />
                   )}
@@ -1128,7 +1198,10 @@ export function QuizGenerator() {
         {showResult && (
           <div className="mb-8 p-4 bg-blue-50 rounded-xl">
             <div className="text-blue-900 mb-2">💡 Explanation</div>
-            <p className="text-blue-700">{currentQ.explanation}</p>
+            <Markdown
+              content={currentQ.explanation}
+              className="text-blue-700"
+            />
           </div>
         )}
 

@@ -119,6 +119,17 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+button,
+a,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -186,4 +197,21 @@
 
 html {
   font-size: var(--font-size);
+}
+
+@keyframes feed-gradient-drift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.learning-feed-motion {
+  background-size: 160% 160%;
+  animation: feed-gradient-drift 12s ease-in-out infinite;
 }

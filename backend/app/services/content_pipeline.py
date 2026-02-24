@@ -34,7 +34,7 @@ class ContentPipelineService:
         self.collection = collection
         self.ai_generator = ai_generator
 
-    async def process_content(self, request: ContentProcessRequest) -> ContentPipelineResult:
+    async def process_content(self, request: ContentProcessRequest, *, user_id: str) -> ContentPipelineResult:
         ai_request = AIContentRequest(
             title=request.title,
             raw_content=request.raw_content,
@@ -45,6 +45,7 @@ class ContentPipelineService:
         )
         insights = await self.ai_generator.generate_content_plan(ai_request)
         document = {
+            "user_id": user_id,
             "title": request.title,
             "target_audience": request.target_audience,
             "learning_objective": request.learning_objective,

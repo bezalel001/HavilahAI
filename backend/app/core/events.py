@@ -7,6 +7,9 @@ from app.core.config import settings
 from app.db.base import Base
 from app.db.session import engine
 from app.services.ai_client import AIServiceError, OpenAIContentGenerator
+from app.services.chat_tutor import ChatTutorService
+from app.services.topic_generator import TopicGeneratorService
+from app.services.learning_assets import LearningAssetsService
 from app.services.content_pipeline import ContentPipelineService
 from app.services.file_storage import FileStorageService
 from app.services.ocr import OcrService, OcrServiceError
@@ -85,6 +88,27 @@ def create_start_app_handler(app: FastAPI):
             except Exception:
                 quiz_generator_service = None
         app.state.quiz_generator_service = quiz_generator_service
+
+        chat_tutor_service = None
+        try:
+            chat_tutor_service = ChatTutorService()
+        except AIServiceError:
+            chat_tutor_service = None
+        app.state.chat_tutor_service = chat_tutor_service
+
+        topic_generator_service = None
+        try:
+            topic_generator_service = TopicGeneratorService()
+        except AIServiceError:
+            topic_generator_service = None
+        app.state.topic_generator_service = topic_generator_service
+
+        learning_assets_service = None
+        try:
+            learning_assets_service = LearningAssetsService()
+        except AIServiceError:
+            learning_assets_service = None
+        app.state.learning_assets_service = learning_assets_service
 
     return start_app
 

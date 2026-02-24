@@ -136,3 +136,19 @@ class FileStorageService:
             storage_path=storage_path,
             bucket_name=bucket,
         )
+
+    def delete(self, stored_path: str, bucket_name: Optional[str] = None) -> None:
+        if self.storage_backend == "local":
+            destination = Path(self.base_dir) / stored_path  # type: ignore[arg-type]
+            if destination.exists():
+                destination.unlink()
+            return
+
+        if not self.minio_client:
+            raise FileValidationError("MinIO client is not configured.")
+        if not bucket_name:
+            raise FileValidationError("Bucket name is required for MinIO deletion.")
+        try:
+            self.minio_client.remove_object(bucket_name=bucket_name, object_name=stored_path)
+        except S3Error as exc:
+            raise OSError(f"Failed to delete from MinIO: {exc.message}") from exc

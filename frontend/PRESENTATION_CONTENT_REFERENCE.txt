@@ -1,0 +1,125 @@
+Presentation.tsx Content Reference
+
+Source file
+- frontend/src/components/Presentation.tsx
+
+Overview
+- This document maps every content block in Presentation.tsx to exact code lines.
+- All line numbers below refer to: frontend/src/components/Presentation.tsx
+
+Core component structure
+- Imports/icons: lines 1-19
+- Component + slide state: lines 21-24
+- Slides array declaration: line 24
+
+Slide-by-slide content mapping
+1. Slide 1 (Title slide)
+- Range: lines 25-47
+- Key content: Main project title, subtitle (Practical Work in AI), presenter identity.
+
+2. Slide 2 (Session Goal)
+- Range: lines 49-113
+- Key content: Session goal, architecture focus, tradeoffs/roadmap, production-ready patterns, original project title note.
+
+3. Slide 3 (1. Problem and Core Idea)
+- Range: lines 115-172
+- Key content: Learning format mismatch, learning friction, hypothesis, core claim.
+
+4. Slide 4 (2. How the System Works - Main Blocks)
+- Range: lines 174-244
+- Key content: Ingestion, understanding, learning assets, engagement, async runtime, realtime UX.
+
+5. Slide 5 (3. System Data Flow)
+- Range: lines 246-317
+- Key content: End-to-end flow chain, event path, stateful stores (PostgreSQL/MongoDB), "Why This Matters" section.
+
+6. Slide 6 (4. AI Model Strategy: OpenAI + Anthropic)
+- Range: lines 319-392
+- Key content: Provider use, fallback logic, architecture rationale, multi-provider abstraction.
+
+7. Slide 7 (5. Upload-to-Content Flow)
+- Range: lines 394-477
+- Key content: 5-stage pipeline (upload, validation, storage, extraction, LLM processing), design benefit.
+
+8. Slide 8 (6. OCR and AI Understanding)
+- Range: lines 479-545
+- Key content: OCR capabilities, AI output types, perception-to-reasoning transformation.
+
+9. Slide 9 (7. How We Generate Learning Assets)
+- Range: lines 547-614
+- Key content: Asset types, structured JSON responses, validation before save, fallback/error handling.
+
+10. Slide 10 (8. Why We Added Async Queueing)
+- Range: lines 615-692
+- Key content: Sync limitations, queue-based flow, runtime design decision (Celery + Redis).
+
+11. Slide 11 (9. Real-Time Update Model)
+- Range: lines 693-772
+- Key content: Lifecycle events, Redis Pub/Sub -> Node WS relay -> client updates, result statement.
+
+12. Slide 12 (10. Product Functionality Walkthrough)
+- Range: lines 773-830
+- Key content: Auth, uploads, content processing, feed, quiz/flashcards, chat/topics/goals.
+
+13. Slide 13 (11. Database Design Choices)
+- Range: lines 832-897
+- Key content: PostgreSQL vs MongoDB responsibilities, persistence strategy summary.
+
+14. Slide 14 (12. Reliability and Error Handling)
+- Range: lines 898-962
+- Key content: Failure cases handled, operational improvements planned.
+
+15. Slide 15 (13. Security and Compliance)
+- Range: lines 963-1035
+- Key content: JWT auth, input validation, config-driven security/GDPR flags, honest status note.
+
+16. Slide 16 (14. Testing and Evaluation)
+- Range: lines 1036-1104
+- Key content: Current tests, evaluation roadmap, quality engineering approach.
+
+17. Slide 17 (15. Requirement Check)
+- Range: lines 1105-1140
+- Key content: Implemented items, partial/planned items, scope decision.
+
+18. Slide 18 (16. Live Demo Plan)
+- Range: lines 1141-1228
+- Key content: Demo flow and 5-step demo script.
+
+19. Slide 19 (17. Wrap-Up)
+- Range: lines 1229-1283
+- Key content: Contributions, roadmap, discussion prompt, key technical contributions.
+
+20. Slide 20 (Thank You)
+- Range: lines 1284-1313
+- Key content: Closing page, presenter identity, Q&A prompt.
+
+Navigation and rendering logic mapping
+- Keyboard navigation (left/right arrow listeners): lines 1315-1326
+- Next slide handler: lines 1328-1332
+- Previous slide handler: lines 1334-1338
+- Current slide resolution: line 1340
+- Root layout render: lines 1342-1413
+- Title/content conditional rendering: lines 1348-1357
+- Button navigation controls: lines 1361-1404
+- Slide indicator dots: lines 1377-1388
+- Keyboard usage hint/footer: lines 1406-1410
+
+Quick index by slide title line
+- Session Goal (20-30 min): line 52
+- 1. Problem and Core Idea: line 118
+- 2. How the System Works (Main Blocks): line 177
+- 3. System Data Flow: line 249
+- 4. AI Model Strategy: OpenAI + Anthropic: line 322
+- 5. Upload-to-Content Flow: line 397
+- 6. OCR and AI Understanding: line 482
+- 7. How We Generate Learning Assets: line 550
+- 8. Why We Added Async Queueing: line 618
+- 9. Real-Time Update Model: line 696
+- 10. Product Functionality Walkthrough: line 776
+- 11. Database Design Choices: line 835
+- 12. Reliability and Error Handling: line 901
+- 13. Security and Compliance: line 966
+- 14. Testing and Evaluation: line 1039
+- 15. Requirement Check (Transparent View): line 1108
+- 16. Live Demo Plan (5-7 min inside talk): line 1144
+- 17. Wrap-Up: Contributions and Next Steps: line 1232

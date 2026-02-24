@@ -7,7 +7,9 @@ services:
       DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/havilah
       MONGODB_URL: mongodb://mongo:27017
       MONGODB_DB_NAME: havilah_edtech_content
+      REDIS_URL: redis://redis:6379/0
       SECRET_KEY: change-me
+      UV_PROJECT_ENVIRONMENT: /tmp/.venv
     volumes:
       - ./backend:/app
     ports:
@@ -15,6 +17,39 @@ services:
     depends_on:
       - postgres
       - mongo
+      - redis
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: uv run celery -A app.worker.celery_app:celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:postgres@postgres:5432/havilah
+      MONGODB_URL: mongodb://mongo:27017
+      MONGODB_DB_NAME: havilah_edtech_content
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: change-me
+      UV_PROJECT_ENVIRONMENT: /tmp/.venv
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+
+  realtime:
+    build:
+      context: ./realtime
+      dockerfile: Dockerfile
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      WS_REDIS_CHANNEL: havilah:events
+      PORT: 8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
 
   postgres:
     image: postgres:16
@@ -34,6 +69,14 @@ services:
     volumes:
       - mongo_data:/data/db
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
   mongo_data:
+  redis_data:

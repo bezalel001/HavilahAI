@@ -1,6 +1,27 @@
 from fastapi.testclient import TestClient
 
 from app.core.config import settings
+from app.db.session import SessionLocal
+from app.models.user import User
+
+
+def _register(client: TestClient, email: str = "admin@example.com", password: str = "SecurePass123!"):
+    payload = {
+        "email": email,
+        "password": password,
+        "full_name": "Admin User",
+        "preferred_language": "en",
+        "learning_style": "visual",
+    }
+    response = client.post(f"{settings.API_V1_STR}/auth/register", json=payload)
+    assert response.status_code == 201
+
+
+def _promote_user_to_admin():
+    with SessionLocal() as db:
+        user = db.query(User).first()
+        user.is_superuser = True
+        db.commit()
 
 
 def test_dashboard_summary_returns_stats(client: TestClient):
@@ -80,3 +101,71 @@ def test_topics_search_and_details(client: TestClient):
 def test_topics_missing_detail_returns_404(client: TestClient):
     response = client.get(f"{settings.API_V1_STR}/topics/9999")
     assert response.status_code == 404
+
+
+def test_admin_can_create_topic(client: TestClient):
+    password = "AdminPass123!"
+    _register(client, password=password)
+    _promote_user_to_admin()
+    token_response = client.post(
+        f"{settings.API_V1_STR}/auth/login",
+        json={"email": "admin@example.com", "password": password},
+    )
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+
+    payload = {
+        "name": "AI Policy in the EU",
+        "category": "Law & Policy",
+        "icon": "🇪🇺",
+        "description": "Understand the evolving AI regulatory landscape in the European Union.",
+        "difficulty": "intermediate",
+        "estimated_hours": 2.5,
+        "gradient_color": "from-blue-500 to-purple-500",
+        "is_popular": True,
+        "modules": [
+            {"title": "EU AI Act Overview", "type": "reading", "duration_minutes": 20, "order_index": 1},
+            {"title": "Risk Classifications", "type": "video", "duration_minutes": 15, "order_index": 2},
+        ],
+    }
+
+    response = client.post(
+        f"{settings.API_V1_STR}/topics",
+        json=payload,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 201
+    body = response.json()["topic"]
+    assert body["name"] == payload["name"]
+    assert len(body["modules"]) == 2
+
+
+def test_non_admin_topic_creation_is_forbidden(client: TestClient):
+    password = "RegularPass123!"
+    _register(client, email="learner@example.com", password=password)
+    login = client.post(
+        f"{settings.API_V1_STR}/auth/login",
+        json={"email": "learner@example.com", "password": password},
+    )
+    assert login.status_code == 200
+    token = login.json()["access_token"]
+
+    payload = {
+        "name": "Green Energy Basics",
+        "category": "Science",
+        "icon": "🌱",
+        "description": "Introductory overview of renewable energy sources.",
+        "difficulty": "beginner",
+        "estimated_hours": 1.5,
+        "gradient_color": "from-green-400 to-teal-500",
+        "is_popular": False,
+        "modules": [
+            {"title": "Why Renewables Matter", "type": "reading", "duration_minutes": 10, "order_index": 1},
+        ],
+    }
+    response = client.post(
+        f"{settings.API_V1_STR}/topics",
+        json=payload,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert response.status_code == 403

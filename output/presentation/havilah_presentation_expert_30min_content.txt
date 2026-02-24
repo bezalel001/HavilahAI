@@ -1,0 +1,344 @@
+From Notes to Learning Assets: A Multimodal LLM System for Automated Educational Content Generation
+
+Practical Work in AI - Expert Walkthrough
+
+From Notes to Learning Assets: A Multimodal LLM System for Automated Educational Content Generation
+
+Presenter
+
+Michael Ogu
+BSc Artificial Intelligence
+Johannes Kepler University Linz
+
+Session Goal (20-30 min)
+
+Explain full functionality, not just UI
+
+Show AI + software architecture choices
+
+Cover tradeoffs, limitations, and roadmap
+
+Original project title:Havilah: AI-Powered Learning Platform for Gen Z
+
+Controls:←/→1 / 18
+
+1. Problem Framing and Product Hypothesis
+
+Input modality mismatch: students store knowledge in long documents, but revise in short bursts.
+
+Cognitive bottleneck: dense language and weak retrieval practice reduce retention.
+
+Hypothesis: AI-generated micro-learning assets + low-latency interactions improve consistency and outcomes.
+
+Core claim:one upload can be transformed into multiple learning formats aligned with Gen Z usage patterns.
+
+Context2 / 18
+
+2. System Overview (Functional Blocks)
+
+Ingestion
+
+Camera/file upload, MIME/type validation, storage abstraction (local/MinIO).
+
+Understanding
+
+OCR + text extraction + LLM content analysis and simplification.
+
+Learning Assets
+
+Summary, key points, quiz items, flashcards, feed-ready snippets.
+
+Engagement
+
+Feed, chat tutor, goals, progress, topic exploration.
+
+Async Runtime
+
+Queue heavy jobs with Celery + Redis.
+
+Realtime UX
+
+Push status updates through Node WebSocket relay.
+
+Capability map3 / 18
+
+3. Data and Control Plane Architecture
+
+Frontend -> FastAPI -> PostgreSQL / MongoDB / Storage\nFastAPI -> Redis (broker/backend) -> Celery Worker\nWorker -> Redis Pub/Sub -> Node.js WS -> Frontend
+
+Stateful stores
+
+PostgreSQL: auth + relational entities.
+MongoDB: generated content docs and flexible assets.
+
+Event path
+
+Task lifecycle events are published to Redis and streamed to subscribed clients.
+
+Architecture4 / 18
+
+4. LLM Strategy: OpenAI + Anthropic
+
+Provider Use
+
+OpenAI is primary for content planning and quiz/asset generation.
+
+Anthropic support is present for selected learning asset flows.
+
+Fallback logic exists where multi-provider service wrappers are used.
+
+Why this design
+
+Operational resilience across provider outages/rate limits.
+
+Model-choice flexibility per task quality/cost profile.
+
+Separation of provider clients from route/controller logic.
+
+Model layer5 / 18
+
+5. Upload and Extraction Pipeline
+
+Client uploads file (camera/image/document).
+
+Backend validates content type and size.
+
+Storage service writes to local or MinIO-compatible backend.
+
+Extractor routes by type: image OCR, PDF parser, DOCX parser, plain text decode.
+
+Normalized text is passed into LLM asset generation stage.
+
+This decouples ingestion from AI generation, enabling independent improvements per stage.
+
+Input pipeline6 / 18
+
+6. OCR and Content Understanding
+
+Current OCR
+
+pytesseract-based image text extraction
+
+Language selection available by config
+
+Graceful failure handling when OCR unavailable
+
+AI Outputs
+
+Summary and key concepts
+
+Simplified concept mappings
+
+Quiz and flashcard generation
+
+Feed-oriented concise explanations
+
+Perception + reasoning7 / 18
+
+7. Learning Asset Generation Logic
+
+Asset Types
+
+Structured summary
+
+Flashcards (front/back/category)
+
+Multiple-choice quiz items + explanations
+
+Topic modules and feed snippets
+
+Prompt/Output Design
+
+Constrained JSON output contracts
+
+Post-parse schema validation in API layer
+
+Fallback and error mapping for robustness
+
+Generation layer8 / 18
+
+8. Why Async Queueing Was Added
+
+Sync-only limitations
+
+Long request latency
+
+Higher timeout risk
+
+Poor scalability under concurrency
+
+Queue-based flow
+
+API enqueues and returnstask_idimmediately
+
+Celery worker processes heavy AI workload
+
+Frontend polls and receives live event updates
+
+Runtime design9 / 18
+
+9. Realtime Event Model
+
+Lifecycle events:enqueued, started, completed, failed.
+
+Backend publishes task events to Redis channel.
+
+Node WebSocket service subscribes to channel and pushes to clients.
+
+Client filters events by user identity and renders toasts/status banner.
+
+Result: user gets immediate feedback without waiting on long HTTP round-trips.
+
+Event-driven UX10 / 18
+
+10. Product Functionality Walkthrough
+
+Auth
+
+Register/login/token-based access control.
+
+Uploads
+
+Validated ingestion with image/document support.
+
+Content
+
+Process, simplify, and retrieve generated assets.
+
+Feed
+
+Short-form educational cards with interactions.
+
+Quiz/Flashcards
+
+Generated practice assets + attempt tracking.
+
+Chat/Topics/Goals
+
+Tutor interactions, topic modules, progress planning.
+
+Feature surface11 / 18
+
+11. Data Modeling Choices
+
+Relational (PostgreSQL)
+
+Users and auth-linked entities
+
+Attempt and interaction records
+
+Deterministic integrity constraints
+
+Document (MongoDB)
+
+LLM-generated nested payloads
+
+Flexible schema evolution
+
+Fast iteration for content artifacts
+
+Persistence strategy12 / 18
+
+12. Reliability and Failure Handling
+
+Failure cases handled
+
+Invalid files / unsupported MIME types
+
+Missing OCR dependencies
+
+LLM provider errors mapped to explicit API responses
+
+Async task failure surfaced in realtime UI
+
+Operational improvements planned
+
+Retry policy tuning and dead-letter queues
+
+Telemetry on task duration and failure rates
+
+Prompt/version auditability for regressions
+
+Robustness13 / 18
+
+13. Security and Compliance Posture
+
+JWT-based authenticated endpoints and role-based guards for privileged actions.
+
+Input validation at schema boundaries and strict request parsing.
+
+Config-driven security and GDPR flags exist; compliance program is still ongoing work.
+
+Honest status:GDPR intent is implemented in configuration and architecture decisions, but full legal/compliance rollout remains a roadmap item.
+
+Security and policy14 / 18
+
+14. Evaluation and Testing
+
+Current tests
+
+API-level tests for auth, content, uploads, OCR, and frontend endpoints
+
+Schema and status-code verification
+
+Database override patterns for isolation
+
+Evaluation roadmap
+
+Task quality metrics (answer quality, hallucination rate)
+
+Latency SLOs and throughput tests
+
+E2E scenario coverage and load tests
+
+Quality engineering15 / 18
+
+15. Requirements Comparison (Transparent View)
+
+Implemented
+
+FastAPI backend + auth + DB integrations
+
+Upload/OCR/AI pipeline with generated learning assets
+
+Goals, progress, chat, feed, topics
+
+Node.js WebSocket + Celery queue architecture
+
+Partial / Planned
+
+Flutter production client
+
+Social groups + leaderboards + offline + push
+
+Kubernetes manifests and full CI/CD
+
+Full GDPR and data residency operations
+
+Scope management16 / 18
+
+16. Live Demo Script (5-7 min inside talk)
+
+Sign in and open Upload page.
+
+Queue async content processing from demo card.
+
+Show task lifecycle and realtime notifications.
+
+Inspect generated summary, key points, and assets.
+
+Open Feed/Quiz/Flashcards to show downstream utility.
+
+Execution plan17 / 18
+
+17. Closing: Contributions and Next Milestones
+
+Delivered a working multi-service AI learning platform MVP.
+
+Added production-relevant async and realtime patterns.
+
+Established a clear path from prototype to scalable product.
+
+Open to questions on model choices, orchestration tradeoffs, and evaluation methodology.
+
+Thank you18 / 18

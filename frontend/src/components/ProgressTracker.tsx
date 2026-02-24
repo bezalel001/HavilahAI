@@ -1,46 +1,36 @@
-import { Trophy, Target, Clock, Calendar, TrendingUp, Award, Zap, Star } from 'lucide-react';
+import { useEffect, useState } from "react";
+import { Trophy, Target, Clock, Calendar, TrendingUp, Award, Zap, Star } from "lucide-react";
+import { fetchProgressOverview, type ProgressOverview } from "../lib/api";
 
 export function ProgressTracker() {
-  const weeklyStats = [
-    { day: 'Mon', minutes: 45, goal: 60 },
-    { day: 'Tue', minutes: 75, goal: 60 },
-    { day: 'Wed', minutes: 60, goal: 60 },
-    { day: 'Thu', minutes: 90, goal: 60 },
-    { day: 'Fri', minutes: 55, goal: 60 },
-    { day: 'Sat', minutes: 30, goal: 60 },
-    { day: 'Sun', minutes: 0, goal: 60 },
-  ];
+  const [overview, setOverview] = useState<ProgressOverview | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const achievements = [
-    { id: 1, name: 'First Steps', description: 'Complete your first quiz', icon: '🎯', unlocked: true },
-    { id: 2, name: 'Week Warrior', description: '7 day study streak', icon: '🔥', unlocked: true },
-    { id: 3, name: 'Quick Learner', description: 'Score 100% on a quiz', icon: '⚡', unlocked: true },
-    { id: 4, name: 'Dedicated Student', description: 'Study for 10 hours total', icon: '📚', unlocked: true },
-    { id: 5, name: 'Knowledge Seeker', description: 'Complete 20 flashcard sets', icon: '🧠', unlocked: false },
-    { id: 6, name: 'Master Mind', description: 'Master 5 different topics', icon: '👑', unlocked: false },
-  ];
+  useEffect(() => {
+    const loadOverview = async () => {
+      try {
+        const data = await fetchProgressOverview();
+        setOverview(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load progress.");
+      }
+    };
+    loadOverview();
+  }, []);
 
-  const subjects = [
-    { name: 'Law & Policy', progress: 75, color: 'bg-blue-500' },
-    { name: 'Physics', progress: 60, color: 'bg-purple-500' },
-    { name: 'Mathematics', progress: 85, color: 'bg-green-500' },
-    { name: 'Biology', progress: 45, color: 'bg-pink-500' },
-    { name: 'Economics', progress: 55, color: 'bg-yellow-500' },
-  ];
+  const weeklyStats = overview?.weekly_stats ?? [];
+  const achievements = overview?.achievements ?? [];
+  const subjects = overview?.subjects ?? [];
+  const recentMilestones = overview?.milestones ?? [];
 
-  const recentMilestones = [
-    { title: 'Completed GDPR Module', date: '2 days ago', icon: Trophy, color: 'text-yellow-500' },
-    { title: 'Reached Level 5', date: '5 days ago', icon: Star, color: 'text-purple-500' },
-    { title: '10 Day Streak Achieved', date: '1 week ago', icon: Zap, color: 'text-orange-500' },
-  ];
-
-  const maxMinutes = Math.max(...weeklyStats.map(s => Math.max(s.minutes, s.goal)));
+  const maxMinutes = Math.max(1, ...weeklyStats.map((s) => Math.max(s.minutes, s.goal)));
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="mb-8">
         <h1 className="mb-2">Your Progress 📊</h1>
         <p className="text-gray-600">Track your learning journey and celebrate achievements</p>
+        {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
       </div>
 
       {/* Overview Stats */}
@@ -51,7 +41,7 @@ export function ProgressTracker() {
             <span className="text-3xl">🎯</span>
           </div>
           <div className="mb-1">Current Level</div>
-          <div>Level 5</div>
+          <div>{overview?.level ?? "Level 0"}</div>
         </div>
 
         <div className="bg-gradient-to-br from-orange-500 to-red-500 text-white rounded-2xl p-6 shadow-lg">
@@ -60,7 +50,7 @@ export function ProgressTracker() {
             <span className="text-3xl">🔥</span>
           </div>
           <div className="mb-1">Study Streak</div>
-          <div>12 Days</div>
+          <div>{overview?.streak ?? "0 Days"}</div>
         </div>
 
         <div className="bg-gradient-to-br from-blue-500 to-purple-500 text-white rounded-2xl p-6 shadow-lg">
@@ -69,7 +59,7 @@ export function ProgressTracker() {
             <span className="text-3xl">⏱️</span>
           </div>
           <div className="mb-1">Total Study Time</div>
-          <div>23.5 hrs</div>
+          <div>{overview?.study_time ?? "0 hrs"}</div>
         </div>
 
         <div className="bg-gradient-to-br from-green-500 to-teal-500 text-white rounded-2xl p-6 shadow-lg">
@@ -78,7 +68,7 @@ export function ProgressTracker() {
             <span className="text-3xl">⭐</span>
           </div>
           <div className="mb-1">Total Points</div>
-          <div>2,450</div>
+          <div>{overview?.total_points ?? "0"}</div>
         </div>
       </div>
 
@@ -177,7 +167,12 @@ export function ProgressTracker() {
           </div>
           <div className="space-y-4">
             {recentMilestones.map((milestone, index) => {
-              const Icon = milestone.icon;
+              const iconLookup = {
+                trophy: Trophy,
+                star: Star,
+                zap: Zap,
+              } as const;
+              const Icon = iconLookup[milestone.icon as keyof typeof iconLookup] ?? Star;
               return (
                 <div key={index} className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50">
                   <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
@@ -193,16 +188,20 @@ export function ProgressTracker() {
           </div>
 
           {/* Next Level Progress */}
-          <div className="mt-6 p-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white">
-            <div className="flex items-center justify-between mb-2">
-              <span>Next Level: Level 6</span>
-              <span>450 / 500 XP</span>
+          {overview?.next_level && (
+            <div className="mt-6 p-4 bg-gradient-to-r from-purple-600 to-pink-600 rounded-xl text-white">
+              <div className="flex items-center justify-between mb-2">
+                <span>Next Level: {overview.next_level.next_level}</span>
+                <span>{overview.next_level.current_xp} / {overview.next_level.target_xp} XP</span>
+              </div>
+              <div className="h-2 bg-white bg-opacity-30 rounded-full overflow-hidden">
+                <div className="h-full bg-white rounded-full" style={{ width: `${overview.next_level.percentage}%` }} />
+              </div>
+              <p className="mt-2 text-white text-opacity-90">
+                {overview.next_level.remaining_xp} XP away from leveling up! 🚀
+              </p>
             </div>
-            <div className="h-2 bg-white bg-opacity-30 rounded-full overflow-hidden">
-              <div className="h-full bg-white rounded-full" style={{ width: '90%' }} />
-            </div>
-            <p className="mt-2 text-white text-opacity-90">50 XP away from leveling up! 🚀</p>
-          </div>
+          )}
         </div>
       </div>
     </div>
