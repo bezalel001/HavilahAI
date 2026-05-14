@@ -1,4 +1,4 @@
-# Practical_Work_In_AI-havilah
+# Havilah
 
 Havilah is a mobile-first EdTech experience for Gen Z learners in the EU. The stack pairs a FastAPI backend (AI content, auth, storage orchestration) with a Flutter client tuned for multimodal study sessions.
 
